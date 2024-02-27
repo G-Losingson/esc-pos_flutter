@@ -1,6 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:circular_menu/circular_menu.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/services.dart';
+import 'package:image/image.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +38,70 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   dynamic result;
 
-  Future testTicket() async {
+  testImg() async {
+    result = null;
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm80, profile);
+    final ByteData data = await rootBundle.load('images/logo.jpeg');
+    final Uint8List bytes = data.buffer.asUint8List();
+    dynamic image = decodeImage(bytes);
+
+    // Using `ESC *`
+    result = generator.image(image);
+
+    // Using `GS ( L`
+    //result = generator.imageRaster(image, imageFn: PosImageFn.graphics);
+
+    setState(() {});
+  }
+
+  testQR() async {
+    result = null;
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm80, profile);
+
+    result = generator.qrcode('Georges Byona');
+    setState(() {});
+  }
+
+  testQRBar() async {
+    result = null;
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm80, profile);
+
+    final List<int> barData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 4];
+
+    result = generator.barcode(Barcode.upcA(barData));
+    setState(() {});
+  }
+
+  testRow() async {
+    result = null;
+    final profile = await CapabilityProfile.load();
+    final generator = Generator(PaperSize.mm80, profile);
+
+    result = generator.row([
+      PosColumn(
+        text: 'col3',
+        width: 3,
+        styles: const PosStyles(align: PosAlign.center, underline: true),
+      ),
+      PosColumn(
+        text: 'col6',
+        width: 6,
+        styles: const PosStyles(align: PosAlign.center, underline: true),
+      ),
+      PosColumn(
+        text: 'col3',
+        width: 3,
+        styles: const PosStyles(align: PosAlign.center, underline: true),
+      ),
+    ]);
+    setState(() {});
+  }
+
+  testText() async {
+    result = null;
     // // Using default profile
     final profile = await CapabilityProfile.load();
     final generator = Generator(PaperSize.mm80, profile);
@@ -66,38 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
     bytes += generator.cut();
 
     result = bytes;
-    // generator.row([
-    //   PosColumn(
-    //     text: 'col3',
-    //     width: 3,
-    //     styles: PosStyles(align: PosAlign.center, underline: true),
-    //   ),
-    //   PosColumn(
-    //     text: 'col6',
-    //     width: 6,
-    //     styles: PosStyles(align: PosAlign.center, underline: true),
-    //   ),
-    //   PosColumn(
-    //     text: 'col3',
-    //     width: 3,
-    //     styles: PosStyles(align: PosAlign.center, underline: true),
-    //   ),
-    // ]);
 
-    // final ByteData data = await rootBundle.load('images/logo.jpeg');
-    // final Uint8List bytes = data.buffer.asUint8List();
-    // dynamic image = decodeImage(bytes);
-
-    /// Using `ESC *`
-    //generator.image(image);
-
-    /// Using `GS ( L`
-    //generator.imageRaster(image, imageFn: PosImageFn.graphics);
-
-    //final List<int> barData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 4];
-    //generator.barcode(Barcode.upcA(barData));
-
-    //generator.qrcode('Georges Byona');
     setState(() {});
   }
 
@@ -187,25 +223,80 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: result == null
-          ? FloatingActionButton(
-              onPressed: testTicket,
-              child: const Icon(
-                Icons.print,
-                color: Colors.blue,
-              ),
-            )
-          : FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  result = null;
-                });
-              },
-              child: const Icon(
-                Icons.close_sharp,
-                color: Colors.blue,
-              ),
-            ),
+      floatingActionButton: CircularMenu(
+        alignment: Alignment.bottomCenter,
+        animationDuration: const Duration(seconds: 1),
+        toggleButtonBoxShadow: const [BoxShadow(color: Colors.transparent)],
+        toggleButtonAnimatedIconData: AnimatedIcons.menu_close,
+        toggleButtonPadding: 20,
+        toggleButtonSize: 30,
+        radius: 120,
+        toggleButtonOnPressed: () {
+          setState(() {
+            result = null;
+          });
+        },
+        items: [
+          CircularMenuItem(
+            onTap: testText,
+            boxShadow: const [BoxShadow(color: Colors.transparent)],
+            color: Colors.blue.shade100,
+            iconColor: Colors.blue,
+            iconSize: 20,
+            padding: 13,
+            icon: CupertinoIcons.doc,
+          ),
+          CircularMenuItem(
+            onTap: () {
+              //testImg();
+            },
+            boxShadow: const [BoxShadow(color: Colors.transparent)],
+            color: Colors.blue.shade100,
+            iconColor: Colors.blue,
+            iconSize: 20,
+            padding: 13,
+            icon: CupertinoIcons.photo,
+          ),
+          CircularMenuItem(
+            onTap: () {
+              //testImg();
+            },
+            boxShadow: const [BoxShadow(color: Colors.transparent)],
+            color: Colors.blue.shade100,
+            iconColor: Colors.blue,
+            iconSize: 20,
+            padding: 13,
+            icon: CupertinoIcons.tickets,
+          ),
+          CircularMenuItem(
+            onTap: testRow,
+            boxShadow: const [BoxShadow(color: Colors.transparent)],
+            color: Colors.blue.shade100,
+            iconColor: Colors.blue,
+            iconSize: 20,
+            padding: 13,
+            icon: Icons.table_rows_rounded,
+          ),
+          CircularMenuItem(
+            onTap: testQR,
+            boxShadow: const [BoxShadow(color: Colors.transparent)],
+            color: Colors.blue.shade100,
+            iconColor: Colors.blue,
+            iconSize: 20,
+            padding: 13,
+            icon: CupertinoIcons.qrcode,
+          ),
+          CircularMenuItem(
+            onTap: testQRBar,
+            boxShadow: const [BoxShadow(color: Colors.transparent)],
+            color: Colors.blue.shade100,
+            iconColor: Colors.blue,
+            iconSize: 20,
+            padding: 13,
+            icon: CupertinoIcons.qrcode_viewfinder,
+          ),
+        ],
+      ),
     );
   }
 }
