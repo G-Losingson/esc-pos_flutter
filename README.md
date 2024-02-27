@@ -1,6 +1,6 @@
-# esc_pos
+# ESC/POS_Flutter
 
-A new Flutter project.
+A demo app in Flutter to test the functionality of ESC/POS commands.
 
 ## Getting Started
 
